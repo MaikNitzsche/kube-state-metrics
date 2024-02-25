@@ -8,7 +8,6 @@ metadata:
   name: kube-state-metrics
   namespace: kube-system
 spec:
-  clusterIP: None
   ports:
   - name: http-metrics
     port: 8080
@@ -18,3 +17,24 @@ spec:
     targetPort: telemetry
   selector:
     app.kubernetes.io/name: kube-state-metrics
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kube-state-metrics-ingress
+  namespace: kube-system
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  rules:
+    - host: wsl2host
+      http:
+        paths:
+          - path: /kube-state-metrics(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: kube-state-metrics
+                port:
+                  number: 8080
